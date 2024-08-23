@@ -56,8 +56,9 @@ def create_report(test, baseline, sample_rollouts, costs, num_segs):
   fig, axs = plt.subplots(ncols=3, figsize=(18, 6), sharey=True)
   bins = np.arange(0, 1000, 10)
   for ax, cost in zip(axs, ['lataccel_cost', 'jerk_cost', 'total_cost']):
+    xscale = 50 if cost == 'lataccel_cost' else 1
     for controller in ['test', 'baseline']:
-      ax.hist(res_df[res_df['controller'] == controller][cost], bins=bins, label=controller, alpha=0.5, color=COLORS[controller])
+      ax.hist(res_df[res_df['controller'] == controller][cost] * xscale, bins=bins, label=controller, alpha=0.5, color=COLORS[controller])
     ax.set_xlabel('Cost')
     ax.set_ylabel('Frequency')
     ax.set_title(f'Cost Distribution: {cost}')
@@ -93,7 +94,7 @@ def create_report(test, baseline, sample_rollouts, costs, num_segs):
   res.append(f'<img style="max-width:100%" src="data:image/png;base64,{img2base64(fig)}" alt="Plot">')
   res.append("</body></html>")
 
-  with open("report.html", "w") as fob:
+  with open("report.html", "w", encoding="utf-8") as fob:
     fob.write("\n".join(res))
     print("Report saved to: './report.html'")
 
