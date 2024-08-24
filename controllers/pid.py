@@ -143,7 +143,7 @@ class PID4Controller(PIDController):
                 derivative = (error - self._last_error) / dt
             derivative2 = (derivative - self._last_derivative) / dt
             # print(derivative2)
-            derivative = self._last_derivative + ((dt / (self._RC + dt)) * (derivative - self._last_derivative))
+            # derivative = self._last_derivative + ((dt / (self._RC + dt)) * (derivative - self._last_derivative))
             self._last_error = error
             self._last_derivative = derivative
             output += self._kd * derivative + self._kd2 * derivative2
