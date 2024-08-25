@@ -1,3 +1,9 @@
+There is one additional dependency now:
+`pip install git+https://github.com/kenblu24/RobotSwarmSimulator`
+run `python cma_pid_search.py` and results will be in `out/`.
+The output gains are scaled to -1 to 1; still need to write the file that unscales them (`post_process_optim_data.py`)
+<span . </span>
+
 <div align="center">
 <h1>comma Controls Challenge v2</h1>
 
