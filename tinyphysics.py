@@ -1,6 +1,7 @@
 import argparse
 import importlib
 import numpy as np
+import torch as pt
 import onnxruntime as ort
 import os
 import pandas as pd
@@ -66,10 +67,14 @@ class TinyPhysicsModel:
     options.intra_op_num_threads = 1
     options.inter_op_num_threads = 1
     options.log_severity_level = 3
-    provider = 'CPUExecutionProvider'
+    # providers = ort.get_available_providers()
+    providers = [
+      # 'CUDAExecutionProvider',
+      'CPUExecutionProvider',
+    ]
 
     with open(model_path, "rb") as f:
-      self.ort_session = ort.InferenceSession(f.read(), options, [provider])
+      self.ort_session = ort.InferenceSession(f.read(), options, providers=providers)
 
   def softmax(self, x, axis=-1):
     e_x = np.exp(x - np.max(x, axis=axis, keepdims=True))
