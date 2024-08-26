@@ -216,8 +216,16 @@ class CMAES:
         #     f.write(str(self.es.result_pretty()))
 
     def parameters_dict(self):
+        try:
+            func_source = inspect.getsource(self.f).split("\n")
+        except TypeError as err:
+            if 'partial' in str(err):
+                func_source = [repr(self.f)]
+                func_source += inspect.getsource(self.f.func).split("\n")
+            else:
+                raise
         return {
-            "fitness_func": inspect.getsource(self.f).split("\n"),
+            "fitness_func": func_source,
             "initial_genome": self.x0,
             "initial_sigma": self.s0,
             "population_size": self.pop,
