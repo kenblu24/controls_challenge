@@ -6,8 +6,24 @@ import yaml
 import numpy as np
 from OptimVar import CMAESVarSet
 from dataclasses import make_dataclass
+from functools import wraps
 import pandas as pd
 from tqdm import tqdm
+import pathlib as pl
+
+CMAES_NAME = "CMAES"
+CONFIG_NAME = "optim-config.yaml"
+GENOMES_NAME = "genomes.csv"
+CHECKPOINT_NAME = "cmaes.pickle"
+PRETTY_NAME = "cmaes-pretty.txt"
+
+
+def _ignore_no_experiment(func):
+    @wraps(func)
+    def check(self, *args, **kwargs):
+        if self.experiment is not None:
+            func(self, *args, **kwargs)
+    return check
 
 
 class CMAES:
@@ -26,7 +42,7 @@ class CMAES:
         eval_is_deterministic=False,
         tqdm=True,
     ):
-        genome_size = len(dvars)
+        genome_size = 0 if dvars is None else len(dvars)
         self.f = f
         self.x0 = [0.5 for _ in range(genome_size)]
         self.s0 = 0.20
@@ -53,12 +69,11 @@ class CMAES:
             b_names = ["error"]
             b_repr = [(b_name, float) for b_name in b_names]
             self.hist_point = make_dataclass(
-                "CMAESPoint",
-                [("time", int), ("gen", int), ("pop", int), ("fitness", float)] + dvar_repr + b_repr
-             )
+                "CMAESPoint", [("time", int), ("gen", int), ("pop", int), ("fitness", float)] + dvar_repr + b_repr
+            )
             self.history = []
             self.exp_path = self.experiment.add_sub("CMAES")
-            with open(os.path.join(self.exp_path, "optim-config.yaml"), "w") as out_f:
+            with open(self.exp_path / CONFIG_NAME, "w") as out_f:
                 yaml.dump(self.parameters_dict(), out_f, default_flow_style=False)
 
     @property
@@ -83,9 +98,9 @@ class CMAES:
                 es.tell(solutions, [self.pull_from_solution_set(s) for s in solutions])
                 es.disp()
 
-                if self.experiment is not None:
-                    df = pd.DataFrame(self.history)
-                    df.to_csv(os.path.join(self.exp_path, "genomes.csv"), index=False)
+                self.write_genomes()
+                self.write_cma_checkpoint()
+                self.write_best()
 
                 self.generation += 1
                 if self.show_steps:
@@ -110,7 +125,7 @@ class CMAES:
             spaces.append(np.linspace(0, 1, d))
         grid = np.meshgrid(*spaces)
         points = np.array(grid).reshape((len(divisions), -1)).T
-        parameters = [self.dvars.from_normalized_to_scaled(p) for p in points]
+        parameters = [self.dvars.from_unit_to_scaled(p) for p in points]
         # processor = MultiWorldSimulation(pool_size=self.n_processes, single_step=False, with_gui=False)
 
         # configs = [self.g_to_w(parameters[i], parameters[i]) for i in range(len(parameters))]
@@ -127,14 +142,14 @@ class CMAES:
 
         if self.experiment is not None:
             df = pd.DataFrame(self.history)
-            df.to_csv(os.path.join(self.exp_path, "genomes.csv"), index=False)
+            df.to_csv(self.exp_path / GENOMES_NAME, index=False)
 
     def ask_for_genomes(self, parameters):
         normalized = parameters
         if self.round_to_every is not None:
             parameters = [self.round_to_nearest(p, increment=self.round_to_every) for p in parameters]
         if self.dvars:
-            parameters = [self.dvars.from_normalized_to_scaled(p) for p in parameters]
+            parameters = [self.dvars.from_unit_to_scaled(p) for p in parameters]
 
         # batched_worlds = isinstance(configs[0], list)
 
@@ -183,16 +198,33 @@ class CMAES:
     #     behavior_names = [world.behavior[i].name for i in range(len(world.behavior))]
     #     return behavior_names
 
+    @_ignore_no_experiment
+    def write_cma_checkpoint(self):
+        with open(self.exp_path / CHECKPOINT_NAME, "wb") as f:
+            f.write(self.es.pickle_dumps())
+
+    @_ignore_no_experiment
+    def write_genomes(self):
+        df = pd.DataFrame(self.history)
+        df.to_csv(self.exp_path / GENOMES_NAME, index=False)
+
+    @_ignore_no_experiment
+    def write_best(self):
+        pass
+        # raise NotImplementedError("")
+        # with open(self.exp_path / PRETTY_NAME, "w") as f:
+        #     f.write(str(self.es.result_pretty()))
+
     def parameters_dict(self):
         return {
-            "fitness_func": inspect.getsource(self.f).split('\n'),
+            "fitness_func": inspect.getsource(self.f).split("\n"),
             "initial_genome": self.x0,
             "initial_sigma": self.s0,
             "population_size": self.pop,
             "bounds": self.bounds,
             "target": self.target,
             "n_processes": self.n_processes,
-            "w_stop_method": inspect.getsource(self.w_stop_method).split('\n') if self.w_stop_method is not None else None,
+            "w_stop_method": inspect.getsource(self.w_stop_method).split("\n") if self.w_stop_method is not None else None,
             "show_steps": self.show_steps,
-            "dvars": self.dvars.as_dict() if self.dvars else None
+            "dvars": self.dvars.as_ordered_dict() if self.dvars else None,
         }

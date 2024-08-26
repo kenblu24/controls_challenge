@@ -1,5 +1,5 @@
 from CMAES import CMAES, CMAESVarSet
-from novel_swarms.results.Experiment import Experiment
+from Experiment import Experiment
 import numpy as np
 import random
 
