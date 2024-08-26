@@ -49,11 +49,11 @@ class CMAESVarSet:
 
     @staticmethod
     def map_to_unit(x, in_a, in_b):
-        return x * (in_b - in_a) + in_a
+        return (x - in_a) / (in_b - in_a)
 
     @staticmethod
     def map_from_unit(x, out_a, out_b):
-        return (x - out_a) / (out_b - out_a)
+        return x * (out_b - out_a) + out_a
 
     @staticmethod
     def map_to_range(x, in_a, in_b, out_a, out_b):
