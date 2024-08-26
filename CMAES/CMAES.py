@@ -4,7 +4,7 @@ import inspect
 import cma
 import yaml
 import numpy as np
-from OptimVar import CMAESVarSet
+from .OptimVar import CMAESVarSet
 from dataclasses import make_dataclass
 from functools import wraps
 import pandas as pd

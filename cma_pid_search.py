@@ -1,6 +1,6 @@
 from functools import partial
 from CMAES import CMAES, CMAESVarSet
-from Experiment import Experiment
+from CMAES.Experiment import Experiment
 import numpy as np
 import random
 import argparse
@@ -16,26 +16,6 @@ DECISION_VARS = CMAESVarSet({
 round_vars_to_nearest = None
 # round_vars_to_nearest = 1 / (int(args.discrete_bins) - 1)
 
-# well that was a fun exercise but this problem has already been solved
-# https://stackoverflow.com/questions/9755538/how-do-i-create-a-list-of-random-numbers-without-duplicates
-# def randrange_norepeat(n, a, b, step=1):
-#     possible = set(range(a, b, step))
-#     chosen = set()
-
-#     for _ in range(n):
-#         choice = rnd.choice(list(possible))
-#         possible.remove(choice)
-#         chosen.add(choice)
-
-#     return list(chosen)
-# def randrange_norepeatbozo(n, a, b):
-#     chosen = []
-#     for _ in range(n):
-#         choice = rnd.randrange(a, b)
-#         while choice in chosen:
-#             choice = rnd.randrange(a, b)
-#         chosen.append(choice)
-
 
 def fitness(genome, maxsamples, seg_range=None, max_workers=None, rng=None):
     if seg_range is None:
@@ -43,6 +23,7 @@ def fitness(genome, maxsamples, seg_range=None, max_workers=None, rng=None):
     if rng is None:
         rng = random.Random()
     import pid_with_genome as prog
+    # https://stackoverflow.com/questions/9755538/how-do-i-create-a-list-of-random-numbers-without-duplicates
     segs_to_test = rng.sample(range(*seg_range), maxsamples)
     # genome = (0.12, 0.115, 0.005, -0.0008)
     results = prog.test_genome(genome, segs_to_test, max_workers=max_workers, tqdm=False)
