@@ -1,8 +1,22 @@
-There is one additional dependency now:
-`pip install git+https://github.com/kenblu24/RobotSwarmSimulator`
-run `python cma_pid_search.py` and results will be in `out/`.
-The output gains are scaled to -1 to 1; still need to write the file that unscales them (`post_process_optim_data.py`)
-<span . </span>
+~~There is one additional dependency now:~~  
+~~`pip install git+https://github.com/kenblu24/RobotSwarmSimulator`~~  
+
+run `python cma_pid_search.py` and results will be in `out/`.  
+This file has several arguments:
+- `--maxsamples`: number of samples to run. default: `48`.
+- `--epochs`: number of epochs to run. default: `100`.
+- `--seg_range`: range of segments to test. default: `[0, 5000]`.
+- `--processes`: number of processes to run. default: `os.cpu_count()` (from `multiprocessing`).
+The output gains printed from CMA are scaled to -1 to 1.  
+There is a script to examine the results:  
+`python -im CMAES.ExperimentReader out/e1724700000/`  
+or just check the genomes.csv file which has the unscaled results.  
+
+CMA pulls its test points from its internal distribution;  
+this is why best fitness seen in training is not necessarily the fitness CMA thinks is best.  
+This value can probably? be retrieved from the pickled CMA object in `out/<experiment>/CMAES/cmaes.pickle`.  
+
+<span . </span>  
 
 <div align="center">
 <h1>comma Controls Challenge v2</h1>

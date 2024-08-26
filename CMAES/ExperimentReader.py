@@ -4,7 +4,7 @@ import argparse
 import pathlib
 import yaml
 
-from OptimVar import CMAESVarSet
+from .OptimVar import CMAESVarSet
 from CMAES import CMAES_NAME, GENOMES_NAME, CONFIG_NAME
 
 
